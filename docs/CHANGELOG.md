@@ -8,5 +8,6 @@
 - Gates: menu items (with descendants), pages/posts/products (redirect or 404), `[feature_flag]` shortcode, Gutenberg `ff--`/`ff-not--` block classes, Elementor element classes, body classes.
 - Create, edit and delete flags in Tools → Feature flags (stored in `wpff_ui_flags`; mode, preview audience, schedule and redirect set in the UI).
 - Block editor "Feature flag" panel on every block: toggle, flag picker and "show only while OFF".
-- Tools → Feature flags screen with "where used" and stale-reference warnings; admin bar status.
+- "Feature flag" wrapper block (`wpff/feature-flag`): nest any blocks; rendered server-side only when the gate passes; labelled "Feature flag: <key>" in List View.
+- Tools → Feature flags screen with "where used" (incl. block classes and wrapper blocks in content) and stale-reference warnings; admin bar status.
 - No-cache headers for previewers; cache purge on admin mode change (LiteSpeed Cache, WP Rocket, object cache).

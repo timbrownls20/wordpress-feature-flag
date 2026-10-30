@@ -2,7 +2,7 @@
 
 Generic feature flags for WordPress. Hide menu items, pages, blocks, Elementor elements and code paths until a flag goes live, with preview for admins and for logged-out reviewers who have a secret link.
 
-- No dependencies, no build step, no front-end JS. The block editor panel is one plain ES5 file.
+- No dependencies, no build step, no front-end JS. The block editor panel and the Feature flag block share one plain ES5 file.
 - **Fails closed.** A flag that isn't registered, or is misspelt, is off for everyone.
 - Every gate runs on the server. Hidden content is never sent to the browser.
 
@@ -177,6 +177,17 @@ The panel stores the choice as a CSS class. You can also type the class yourself
 
 If a block has several flag classes, all of them must pass. Blocks that don't support custom classes don't get the panel.
 
+### Feature flag block (wrapper)
+
+To gate a whole section, insert the **Feature flag** block (Design category, or type "/feature flag") and put any blocks inside it. Then pick the flag in the block settings, and optionally turn on **Show only while flag is OFF**.
+
+- List View names the block **Feature flag: store** (or **Feature flag: store (while OFF)**), so gated sections are easy to spot.
+- In the editor, a header bar on the block shows the flag and its current mode.
+- On the front end, the block adds no wrapper markup. The server renders its inner blocks only when the gate passes.
+- A block with no flag picked yet shows its content to everyone.
+
+To launch: switch the flag on. A common pattern is a "coming soon" wrapper set to **while OFF** next to a launch wrapper on the same flag, so one switch swaps them.
+
 ### Elementor
 
 Use the same classes in Advanced → **CSS Classes** on widgets, sections, columns and containers. In the Elementor editor everything stays visible so you can still edit it. This gate uses Elementor's `elementor/frontend/{widget|section|column|container}/should_render` filters and the `_css_classes` / `css_classes` settings. **Check these against your installed Elementor version.** If they have moved, use the shortcode instead.
@@ -195,7 +206,7 @@ Use the same classes in Advanced → **CSS Classes** on widgets, sections, colum
 - whether the flag is live for the public
 - what you see now
 - the preview link
-- **Where used**: every post and menu item carrying the flag, with edit links
+- **Where used**: every post and menu item using the flag, through the page field, menu fields, block panels or Feature flag blocks, with edit links
 
 Flags registered with `admin_toggle`, and every admin-created flag, also get a mode selector there. Saving it fires `wpff_mode_changed`.
 
@@ -222,7 +233,7 @@ Flags with a schedule window flip with no one around to purge. Either exclude pa
 Once a feature is permanently live:
 
 1. Remove the `wpff_flag()` checks from code.
-2. Clear the flag from menu items and posts. Tools → Feature flags → **Where used** lists them.
+2. Clear the flag from menu items, posts, block panels and Feature flag blocks. Tools → Feature flags → **Where used** lists them all. For a launched flag, unwrap Feature flag blocks (keep their inner blocks) and delete the "while OFF" ones.
 3. Remove the registration.
 4. Remove its constants and tokens from `wp-config.php`.
 

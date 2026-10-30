@@ -92,25 +92,80 @@ function wpff_handle_save_mode() {
 add_action( 'admin_post_wpff_save_mode', 'wpff_handle_save_mode' );
 
 /**
- * Every post / menu item carrying _wpff_flag, grouped by flag key (any status).
+ * Flag keys referenced in post content: ff--<key> / ff-not--<key> block classes
+ * and wpff/feature-flag wrapper blocks.
+ *
+ * @param string $content Post content.
+ * @return string[]
+ */
+function wpff_flags_in_content( $content ) {
+	$keys = array();
+	if ( preg_match_all( '/(?<![\w-])ff(?:-not)?--([a-z0-9][a-z0-9_-]{0,39})/', $content, $m ) ) {
+		$keys = $m[1];
+	}
+	if ( false !== strpos( $content, 'wp:wpff/feature-flag' ) ) {
+		$keys = array_merge( $keys, wpff_flags_in_blocks( parse_blocks( $content ) ) );
+	}
+	return array_values( array_unique( $keys ) );
+}
+
+/**
+ * Flag keys set on wpff/feature-flag blocks, recursively.
+ *
+ * @param array $blocks Parsed blocks.
+ * @return string[]
+ */
+function wpff_flags_in_blocks( $blocks ) {
+	$keys = array();
+	foreach ( $blocks as $block ) {
+		if ( 'wpff/feature-flag' === $block['blockName'] && ! empty( $block['attrs']['flag'] ) && is_string( $block['attrs']['flag'] ) ) {
+			$keys[] = $block['attrs']['flag'];
+		}
+		if ( ! empty( $block['innerBlocks'] ) ) {
+			$keys = array_merge( $keys, wpff_flags_in_blocks( $block['innerBlocks'] ) );
+		}
+	}
+	return $keys;
+}
+
+/**
+ * Every post, menu item or piece of block content using a flag, grouped by
+ * flag key (any status except revisions and auto-drafts).
  *
  * @return array<string, int[]>
  */
 function wpff_flag_usage() {
 	global $wpdb;
-	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> ''", WPFF_META_FLAG ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- admin-only report, one query for all flags.
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery -- admin-only report, one query per source for all flags.
+	$rows  = $wpdb->get_results( $wpdb->prepare( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> ''", WPFF_META_FLAG ) );
+	$posts = $wpdb->get_results(
+		"SELECT ID, post_content FROM {$wpdb->posts}
+		WHERE post_type <> 'revision' AND post_status NOT IN ( 'auto-draft', 'inherit' )
+		AND ( post_content LIKE '%ff--%' OR post_content LIKE '%ff-not--%' OR post_content LIKE '%wp:wpff/feature-flag%' )"
+	);
+	// phpcs:enable
+
 	$usage = array();
 	foreach ( $rows as $row ) {
 		$usage[ $row->meta_value ][] = (int) $row->post_id;
 	}
-	if ( $rows ) {
-		_prime_post_caches( wp_list_pluck( $rows, 'post_id' ), false, true );
+	foreach ( $posts as $post ) {
+		foreach ( wpff_flags_in_content( $post->post_content ) as $key ) {
+			$usage[ $key ][] = (int) $post->ID;
+		}
+	}
+	foreach ( $usage as $key => $ids ) {
+		$usage[ $key ] = array_values( array_unique( $ids ) );
+	}
+	if ( $usage ) {
+		_prime_post_caches( array_unique( array_merge( ...array_values( $usage ) ) ), false, true );
 	}
 	return $usage;
 }
 
 /**
- * Render the "where used" list for a set of post IDs.
+ * Render the "where used" list for a set of post IDs. Posts may use a flag through
+ * the page-level field, block classes or wrapper blocks.
  *
  * @param int[] $post_ids Post / menu item IDs.
  */
@@ -283,7 +338,7 @@ function wpff_render_admin_page() {
 		<?php if ( $stale ) : ?>
 			<h2><?php esc_html_e( 'Stale references', 'wordpress-feature-flags' ); ?></h2>
 			<div class="notice notice-warning inline">
-				<p><?php esc_html_e( 'These items reference flags that are not registered. Unregistered flags are off, so these items are currently hidden (or, if set to "show only while off", shown). Clear the field or register the flag.', 'wordpress-feature-flags' ); ?></p>
+				<p><?php esc_html_e( 'These items reference flags that are not registered — via the page field, a menu item, a block\'s Feature flag panel or a Feature flag block. Unregistered flags are off, so that content is currently hidden (or, if set to "show only while off", shown). Clear the reference or register the flag.', 'wordpress-feature-flags' ); ?></p>
 			</div>
 			<table class="widefat striped">
 				<thead>
