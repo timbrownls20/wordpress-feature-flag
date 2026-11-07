@@ -338,7 +338,7 @@ function wpff_shortcode( $atts, $content = null ) {
 	if ( null === $content || ! wpff_visible( (string) $atts['name'], 'off' === $atts['show'] ) ) {
 		return '';
 	}
-	return do_shortcode( $content );
+	return wpff_mark( do_shortcode( $content ), (string) $atts['name'], 'off' === $atts['show'] );
 }
 add_shortcode( 'feature_flag', 'wpff_shortcode' );
 

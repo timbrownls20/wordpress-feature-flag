@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- Subtle front-end indicators on gated content for users who can preview the flag: amber dashed outline when hidden from the public, faint grey when public, tooltip with the flag key, admin bar `⚑ <key>` on gated pages. `wpff_show_indicators` filter.
+
 ## 1.0.0
 
 - Flag registry: `wpff_register` action, `wpff_register()`, `wpff_flag()`, `wpff_is_live()`, `wpff_mode()`, `wpff_visible()`, `wpff_flags()`.

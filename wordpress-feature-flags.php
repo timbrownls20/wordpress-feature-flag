@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       WordPress Feature Flags
  * Description:       Feature flags for WordPress: hide menu items, pages, blocks and code paths until a flag goes live, with admin and secret-link preview.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 5.4
  * Requires PHP:      7.4
  * Author:            Tim Brown
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Dual version bump: keep in step with the Version header above.
-define( 'WPFF_VERSION', '1.0.0' );
+define( 'WPFF_VERSION', '1.1.0' );
 define( 'WPFF_FILE', __FILE__ );
 define( 'WPFF_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -36,6 +36,7 @@ require_once WPFF_DIR . 'includes/block-editor.php';
 require_once WPFF_DIR . 'includes/cache.php';
 require_once WPFF_DIR . 'includes/admin.php';
 require_once WPFF_DIR . 'includes/admin-bar.php';
+require_once WPFF_DIR . 'includes/indicators.php';
 
 add_action(
 	'init',

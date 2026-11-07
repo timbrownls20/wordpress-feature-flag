@@ -59,7 +59,8 @@ function wpff_render_flag_block( $attributes, $content ) {
 	if ( '' === $flag ) {
 		return $content;
 	}
-	return wpff_visible( $flag, ! empty( $attributes['invert'] ) ) ? $content : '';
+	$invert = ! empty( $attributes['invert'] );
+	return wpff_visible( $flag, $invert ) ? wpff_mark( $content, $flag, $invert ) : '';
 }
 
 /**

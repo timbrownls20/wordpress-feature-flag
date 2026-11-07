@@ -81,6 +81,7 @@ Hooks:
 | `wpff_can_preview` | filter | `( bool $can, string $key )`. Extension point for preview audiences beyond `preview_cap`. |
 | `wpff_cookie_ttl` | filter | `( int $seconds, string $key )`. Default is 14 days. |
 | `wpff_gate_post_types` | filter | Post types that get the meta box. Default: `page`, `post`, and `product` when WooCommerce is active. |
+| `wpff_show_indicators` | filter | `( bool $show, string $key )`. Whether gated content is outlined for the current viewer. |
 | `wpff_mode_changed` | action | `( $key, $mode, $old )`. Fires after an admin toggle is saved. Purge caches here. |
 
 ## Modes
@@ -195,6 +196,17 @@ Use the same classes in Advanced → **CSS Classes** on widgets, sections, colum
 ### Body classes
 
 `ff-on--<key>` or `ff-off--<key>` is added for every flag. Use them for tweaks that only change presentation. Nothing is hidden from the HTML.
+
+### Indicators
+
+Logged-in users who can preview a flag see a faint outline around content gated by it on the front end:
+
+- **Amber dashed:** you see it but the public doesn't (preview mode, or outside the schedule window).
+- **Faint grey dotted:** gated, but the public sees it too right now.
+
+Hover for a tooltip naming the flag. Indicators appear on class-gated blocks, Feature flag blocks, the shortcode, Elementor elements and menu items. A gated page also gets a `⚑ <key>` item in the admin bar.
+
+Visitors, preview-link holders and **View as public visitor** get unchanged markup. To see a page without the indicators, use **View as public visitor**. Feature flag blocks and shortcodes are wrapped in a `div` (or a `span` for inline content) only while indicators are showing. Block tooltips need WordPress 6.2+. Turn indicators off with `add_filter( 'wpff_show_indicators', '__return_false' );`. The filter also receives the flag key.
 
 ## Admin screen
 
